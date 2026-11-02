@@ -1,14 +1,17 @@
 {
-  "name": "@zion/memory-service",
+  "name": "zioon-memory",
   "private": true,
+  "version": "0.1.0",
   "type": "module",
+  "license": "UNLICENSED",
+  "packageManager": "bun@1.4.1",
+  "engines": { "node": ">=22.18.0", "bun": "1.4.1" },
+  "dependencies": { "jose": "6.2.12" },
   "scripts": {
-    "start": "bun src/main.ts",
-    "verify": "bun scripts/verify.ts",
-    "probe:oss": "bun scripts/probe-oss.ts"
-  },
-  "dependencies": {
-    "ali-oss": "6.23.0",
-    "jose": "6.2.12"
+    "bootstrap": "node scripts/bootstrap-upstream.mjs",
+    "start": "bun --cwd apps/memory-service start",
+    "test": "node --test apps/memory-service/tests/*.test.mjs && bun test apps/memory-service/tests/gateway.integration.test.ts",
+    "build:site": "node scripts/build-site.mjs",
+    "check:site": "node scripts/check-site.mjs"
   }
 }

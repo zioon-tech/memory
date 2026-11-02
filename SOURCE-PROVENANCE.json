@@ -1,0 +1,18 @@
+{
+  "origin": "https://github.com/zioon-tech/zioon",
+  "snapshot": "596c6e0e",
+  "history": "git subtree split --prefix=apps/memory-service",
+  "portableSources": {
+    "packages/zioon-account/src/client.mjs": "packages/account-client/src/client.mjs",
+    "packages/local-tools-client/src/plugin-data-files.mjs": "packages/protocol/src/plugin-data-files.mjs",
+    "packages/plugin-sdk/src/agentfs-mcp-policy.mjs": "packages/protocol/src/agentfs-mcp-policy.mjs",
+    "scripts/agentfs-login.mjs": "scripts/agentfs-login.mjs",
+    "scripts/install-agentfs-login.mjs": "scripts/install-agentfs-login.mjs"
+  },
+  "upstream": {
+    "repository": "https://github.com/desplega-ai/agent-fs",
+    "commit": "aecd4c83606f45325daece46b01f0c38ad2cc0ed",
+    "version": "0.18.5",
+    "bun": "1.4.1"
+  }
+}

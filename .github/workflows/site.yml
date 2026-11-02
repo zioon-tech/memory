@@ -1,0 +1,21 @@
+name: Memory website and docs
+on:
+  pull_request:
+    paths: ["apps/memory-service/web/**", "docs/**", "scripts/*site.mjs", ".github/workflows/site.yml"]
+  push:
+    branches: [main, "migration/**"]
+    paths: ["apps/memory-service/web/**", "docs/**", "scripts/*site.mjs", ".github/workflows/site.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: memory-site-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  website:
+    uses: zioon-tech/workflows/.github/workflows/node-ci.yml@0a13f954a680a4a7f03fafa7ebdb6a312e711286
+    with:
+      install: node --version
+      command: npm run build:site && npm run check:site
+      artifact-name: memory-public-site-${{ github.sha }}
+      artifact-path: dist/public-site

@@ -1,5 +1,5 @@
 import { core } from "./upstream.ts";
-import { contentHash, mergeJsonlRecords } from "../../../packages/local-tools-client/src/plugin-data-files.mjs";
+import { contentHash, mergeJsonlRecords } from "../../../packages/protocol/src/plugin-data-files.mjs";
 
 export const MEMORY_ROOT = "/memory/dev.identity";
 const conflict = () => { throw Object.assign(new Error("content_hash_conflict"), { statusCode: 409 }); };

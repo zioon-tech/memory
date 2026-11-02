@@ -1,7 +1,7 @@
 import { createHash, createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
-import { createAccountClient } from "../../../packages/zioon-account/src/client.mjs";
+import { createAccountClient } from "../../../packages/account-client/src/client.mjs";
 
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const random = () => randomBytes(32).toString("base64url");

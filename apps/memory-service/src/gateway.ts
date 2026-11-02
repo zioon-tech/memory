@@ -2,7 +2,7 @@ import { createHash, createHmac } from "node:crypto";
 import { core, createApp, createMcpServer, WebStandardStreamableHTTPServerTransport, eq } from "./upstream.ts";
 import { pluginFileOperation } from "./plugin-files.ts";
 import { createAccountBindings } from "./account-bindings.ts";
-import { AGENTFS_MCP_PREFIX, agentFsMcpEffect, agentFsMcpPaths } from "../../../packages/plugin-sdk/src/agentfs-mcp-policy.mjs";
+import { AGENTFS_MCP_PREFIX, agentFsMcpEffect, agentFsMcpPaths } from "../../../packages/protocol/src/agentfs-mcp-policy.mjs";
 
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const json = (value, status = 200) => Response.json(value, { status, headers: { "cache-control": "no-store" } });
