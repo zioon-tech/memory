@@ -1,14 +1,18 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 
 export const UPSTREAM_COMMIT = "aecd4c83606f45325daece46b01f0c38ad2cc0ed";
 const root = resolve(process.env.AGENT_FS_UPSTREAM_DIR || "");
 if (!process.env.AGENT_FS_UPSTREAM_DIR) throw new Error("Set AGENT_FS_UPSTREAM_DIR to the pinned agent-fs checkout");
 const version = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")).version;
-const commit = execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-if (commit !== UPSTREAM_COMMIT || version !== "0.18.5") throw new Error("agent-fs checkout does not match the reviewed version");
+const releaseMarker = resolve(root, ".zioon-upstream.json");
+const provenance = existsSync(releaseMarker)
+  ? JSON.parse(readFileSync(releaseMarker, "utf8"))
+  : { commit: execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).trim(), version };
+const commit = provenance.commit;
+if (commit !== UPSTREAM_COMMIT || version !== "0.18.5" || provenance.version !== version) throw new Error("agent-fs checkout does not match the reviewed version");
 export const core = await import(pathToFileURL(resolve(root, "packages/core/src/index.ts")).href);
 export const { createApp } = await import(pathToFileURL(resolve(root, "packages/server/src/app.ts")).href);
 export const { createMcpServer } = await import(pathToFileURL(resolve(root, "packages/mcp/src/server.ts")).href);
