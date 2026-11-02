@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "packageManager": "bun@1.4.1",
   "engines": { "node": ">=22.18.0", "bun": "1.4.1" },
-  "dependencies": { "jose": "6.2.12" },
+  "dependencies": { "jose": "6.2.12", "zod-to-json-schema": "3.25.1" },
   "scripts": {
     "bootstrap": "node scripts/bootstrap-upstream.mjs",
     "start": "bun --cwd apps/memory-service start",
