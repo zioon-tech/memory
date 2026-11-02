@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   secrets:
-    uses: zioon-tech/workflows/.github/workflows/secret-scan.yml@0a13f954a680a4a7f03fafa7ebdb6a312e711286
+    uses: zioon-tech/workflows/.github/workflows/secret-scan.yml@c393e2bb7646ec3e3ac889c5548f6c719d3ca2bc
   service:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -29,18 +29,17 @@ jobs:
           bun-version: 1.4.1
       - run: npm run bootstrap
       - run: npm test
-      - name: Create service source artifact
-        run: |
-          mkdir -p dist
-          git archive HEAD | gzip -n > dist/memory-source.tgz
-          sha256sum dist/memory-source.tgz > dist/SHA256SUMS
-          printf '%s\n' "$GITHUB_SHA" > dist/SOURCE_COMMIT
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: zioon-tech/workflows
+          ref: 191acbba0ed2080dc06078b569155a702d4853dc
+          path: .release-tools
+          persist-credentials: false
+      - name: Package dependency-ready service
+        run: node scripts/package-release.mjs service
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: memory-service-${{ github.sha }}
-          path: |
-            dist/memory-source.tgz
-            dist/SHA256SUMS
-            dist/SOURCE_COMMIT
+          path: .release-out/service
           if-no-files-found: error
           retention-days: 14
