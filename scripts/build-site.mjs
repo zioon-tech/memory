@@ -11,7 +11,7 @@ await mkdir(resolve(output, "assets"), { recursive: true });
 await cp(resolve(source, "index.html"), resolve(output, "index.html"));
 await mkdir(resolve(output, "docs"), { recursive: true });
 await cp(resolve(source, "docs.html"), resolve(output, "docs/index.html"));
-for (const file of ["site.css", "tokens.css", "site.js", "forest.webp", "favicon.svg"]) {
+for (const file of ["site.css", "tokens.css", "site.js", "forest.webp", "favicon.svg", "public-security-filing.png", "website-filing.css"]) {
   await cp(resolve(source, file), resolve(output, "assets", file));
 }
 await cp(resolve(source, "favicon.svg"), resolve(output, "favicon.svg"));

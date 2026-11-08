@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>使用文档 · Zioon Memory</title><meta name="description" content="安装 agent-fs CLI，使用 Zioon 账号登录，查看与管理你的记忆文件。"><meta name="theme-color" content="#ffffff"><link rel="icon" href="/favicon.svg?v=20261024"><link rel="stylesheet" href="/assets/site.css?v=20261024"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>使用文档 · Zioon Memory</title><meta name="description" content="安装 agent-fs CLI，使用 Zioon 账号登录，查看与管理你的记忆文件。"><meta name="theme-color" content="#ffffff"><link rel="icon" href="/favicon.svg?v=20261024"><link rel="stylesheet" href="/assets/site.css?v=20261024"><link rel="stylesheet" href="/assets/website-filing.css"></head>
 <body class="memory-app">
 <header class="console-header"><a class="home-brand" href="/"><span class="home-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7h-3a2 2 0 0 1-2-2V2"/><path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v10a2 2 0 0 1-2 2Z"/><path d="M3 7.6v12.8A1.6 1.6 0 0 0 4.6 22h9.8"/></svg></span><span>Zioon <strong>Memory</strong></span></a><nav class="docs-nav"><a href="/">首页</a><a href="/console">控制台 ↗</a></nav></header>
 <main class="docs-main">
@@ -29,6 +29,7 @@ agent-fs write /memory/dev.identity/notes.md --content "今天的协作笔记"
 agent-fs log /memory/dev.identity/notes.md</code></pre><p>更完整的参数可以通过 <code>agent-fs &lt;命令&gt; --help</code> 查看。文件写入会留下版本记录；网络中断后应先读取文件，确认是否已写入，再决定是否重试。</p>
   <h2>同一份记忆，两种入口</h2><table class="docs-table"><thead><tr><th>入口</th><th>用途</th></tr></thead><tbody><tr><td>网页控制台</td><td>浏览、搜索和编辑自己的记忆文件</td></tr><tr><td>agent-fs CLI</td><td>在终端或 Agent 中读写记忆文件</td></tr></tbody></table>
   <h2>退出登录</h2><pre><code>agent-fs logout</code></pre><p>此命令撤销当前 CLI 登录并移除本机凭据。网页控制台的登录可通过右上角「退出」结束。</p>
-</main><footer class="site-footer"><a href="/">Zioon Memory</a><div><a href="/console">进入控制台</a><a href="/">首页</a></div></footer>
+</main><footer class="site-footer"><a href="/">Zioon Memory</a><div><a href="/console">进入控制台</a><a href="/">首页</a></div>
+<nav class="website-filing" aria-label="网站备案"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">赣ICP备2026025481号-1</a><a href="https://beian.mps.gov.cn/#/query/webSearch?code=33011002020851" target="_blank" rel="noreferrer"><img src="/assets/public-security-filing.png" width="18" height="20" alt="" aria-hidden="true">浙公网安备33011002020851号</a></nav></footer>
 </body>
 </html>
