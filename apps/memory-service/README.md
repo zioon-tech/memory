@@ -11,6 +11,26 @@ The reviewed upstream is `desplega-ai/agent-fs` 0.18.5, commit
 AgentFS. SQLite owns metadata and search indexes; the selected local/OSS
 storage adapter owns versioned file bytes.
 
+## Conditional file batches
+
+`GET /zion/files/read-batch?files=<URL-encoded JSON array>` reads up to 32 exact
+Identity paths. Each item has `path`, optional `known_hash` (SHA-256 or `null`),
+and optional `metadata_only: true`. Results use `batch_version: 1` and return
+an ordered `files` array with each `path`, `missing`, and `content_hash`.
+`content` is included only for changed files requested with their bodies.
+Missing files have a null hash; empty files are present with the empty-content
+SHA-256.
+
+The endpoint authenticates every request. Delegations must bind all requested
+paths to the exact signed request. All paths are validated before file access,
+and the existing account lock keeps the batch consistent with API, CLI, MCP
+and raw-upload changes. Unchanged tracked files use current revision metadata
+without object reads. Files without revision metadata fall back to content
+reads. The batch does not initialize or write files.
+
+Install this interface before the Runtime conditional-read client. Existing
+single-file endpoints retain their contracts.
+
 ## Verified state
 
 On 2026-10-22 the independent service was deployed on ECS at

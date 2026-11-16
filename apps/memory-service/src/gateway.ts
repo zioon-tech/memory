@@ -1,6 +1,6 @@
 import { createHash, createHmac } from "node:crypto";
 import { core, createApp, createMcpServer, WebStandardStreamableHTTPServerTransport, eq } from "./upstream.ts";
-import { pluginFileOperation } from "./plugin-files.ts";
+import { pluginFileOperation, readFileBatch, parseFileBatch } from "./plugin-files.ts";
 import { createAccountBindings } from "./account-bindings.ts";
 import { AGENTFS_MCP_PREFIX, agentFsMcpEffect, agentFsMcpPaths } from "../../../packages/protocol/src/agentfs-mcp-policy.mjs";
 
@@ -55,6 +55,9 @@ export function createMemoryGateway({ db, storage, runtimeUrl, secret, origins =
       headers: { authorization, ...(delegated ? { "content-type": "application/json" } : {}) },
       ...(delegated ? { body: JSON.stringify({
         method: request.method, path: new URL(request.url).pathname + new URL(request.url).search, bodyHash: hash(body),
+        ...(new URL(request.url).pathname === "/zion/files/read-batch" ? {
+          filePaths: parseFileBatch(new URL(request.url).searchParams).map(spec => spec.path)
+        } : {}),
         ...(new URL(request.url).pathname === "/mcp" ? (() => {
           const call = JSON.parse(new TextDecoder().decode(body));
           const effect = agentFsMcpEffect(call.params?.name);
@@ -158,9 +161,9 @@ export function createMemoryGateway({ db, storage, runtimeUrl, secret, origins =
     }
     const value = await identity(request, bytes);
     let read = ["GET", "HEAD"].includes(request.method);
-    const pluginOperation = url.pathname.match(/^\/zion\/files\/(read|write|entries|append-jsonl)$/)?.[1];
+    const pluginOperation = url.pathname.match(/^\/zion\/files\/(read-batch|read|write|entries|append-jsonl)$/)?.[1];
     if (pluginOperation) {
-      read = ["read", "entries"].includes(pluginOperation);
+      read = ["read", "read-batch", "entries"].includes(pluginOperation);
       if (request.method !== (read ? "GET" : "POST")) return json({ error: "method_not_allowed" }, 405);
     }
     const isOps = /^\/orgs\/[^/]+\/ops$/.test(url.pathname) && request.method === "POST";
@@ -192,6 +195,9 @@ export function createMemoryGateway({ db, storage, runtimeUrl, secret, origins =
         defaultOrgId: binding.orgId, defaultDriveId: binding.driveId
       });
       if (pluginOperation) {
+        if (pluginOperation === "read-batch") {
+          return json(await readFileBatch({ db, storage, binding }, url.searchParams));
+        }
         return json(await pluginFileOperation({ db, storage, binding }, pluginOperation,
           read ? Object.fromEntries(url.searchParams) : parsed));
       }
