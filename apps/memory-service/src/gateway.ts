@@ -35,6 +35,9 @@ export function createMemoryGateway({ db, storage, runtimeUrl, secret, origins =
   async function identity(request, body) {
     const authorization = request.headers.get("authorization") || "";
     if (accountIssuer && authorization.startsWith("Bearer zioon_at_")) {
+      if (request.headers.get("x-zioon-space-id") || new URL(request.url).searchParams.has("document")) {
+        throw Object.assign(new Error("shared_memory_runtime_session_required"), { statusCode: 403 });
+      }
       const response = await fetchImpl(`${accountIssuer}/userinfo`, {
         headers: { authorization }, redirect: "error", signal: AbortSignal.timeout(5000)
       });
@@ -50,9 +53,12 @@ export function createMemoryGateway({ db, storage, runtimeUrl, secret, origins =
           scope === "memory.read" ? ["runtime.read"] : scope === "memory.write" ? ["runtime.write"] : []) };
     }
     const delegated = authorization.startsWith("Bearer zm_");
-    const response = await fetchImpl(`${runtimeUrl}${delegated ? "/v1/account/memory/verify" : "/v1/account/me"}`, {
+    const documentId = new URL(request.url).searchParams.get("document");
+    const response = await fetchImpl(`${runtimeUrl}${delegated ? "/v1/account/memory/verify" : "/v1/account/me"}${!delegated && documentId ? `?document=${encodeURIComponent(documentId)}` : ""}`, {
       method: delegated ? "POST" : "GET",
-      headers: { authorization, ...(delegated ? { "content-type": "application/json" } : {}) },
+      headers: { authorization,
+        ...(request.headers.get("x-zioon-space-id") ? { "x-zioon-space-id": request.headers.get("x-zioon-space-id") } : {}),
+        ...(delegated ? { "content-type": "application/json" } : {}) },
       ...(delegated ? { body: JSON.stringify({
         method: request.method, path: new URL(request.url).pathname + new URL(request.url).search, bodyHash: hash(body),
         ...(new URL(request.url).pathname === "/zion/files/read-batch" ? {
@@ -71,11 +77,16 @@ export function createMemoryGateway({ db, storage, runtimeUrl, secret, origins =
       redirect: "error", signal: AbortSignal.timeout(5000)
     });
     if (!response.ok) throw Object.assign(new Error("Zion authentication or permission check failed"), {
-      statusCode: response.status === 401 || response.status === 403 ? response.status : 503
+      statusCode: response.status === 401 || response.status === 403 ? response.status : response.status === 404 ? 403 : 503
     });
     const value = await response.json();
     if (!value.authenticated || !value.user?.id || !value.space?.id
       || value.membership?.status !== "active") throw Object.assign(new Error("Active Zion membership required"), { statusCode: 403 });
+    const expectedSpace = request.headers.get("x-zioon-space-id");
+    if (expectedSpace && value.space.id !== expectedSpace
+      || documentId && value.memoryScope?.documentId !== documentId) {
+      throw Object.assign(new Error("memory_scope_mismatch"), { statusCode: 403 });
+    }
     return value;
   }
   function bind(value) {
@@ -189,7 +200,15 @@ export function createMemoryGateway({ db, storage, runtimeUrl, secret, origins =
     }
     const key = accounts.resolve(value).scope;
     return locked(key, async () => {
+      // A request can spend time waiting for another mutation. Recheck its
+      // signed context after the wait and before resolving any stored bytes.
+      const current = await identity(request, bytes);
+      if (accounts.resolve(current).scope !== key
+        || !current.scopes?.includes(read ? "runtime.read" : "runtime.write")) {
+        return json({ error: "memory_scope_changed" }, 403);
+      }
       const binding = bind(value);
+      const operate = async () => {
       if (url.pathname === "/auth/me") return json({
         userId: binding.userId, email: value.user.email, displayName: value.user.name,
         defaultOrgId: binding.orgId, defaultDriveId: binding.driveId
@@ -231,6 +250,12 @@ export function createMemoryGateway({ db, storage, runtimeUrl, secret, origins =
       }
       responseHeaders.set("cache-control", "no-store");
       return new Response(resultBody, { status: result.status, headers: responseHeaders });
+      };
+      const response = await operate();
+      const outgoing = await identity(request, bytes);
+      if (accounts.resolve(outgoing).scope !== key
+        || !outgoing.scopes?.includes(read ? "runtime.read" : "runtime.write")) return json({ error: "memory_scope_changed" }, 403);
+      return response;
     });
   }
   return {
@@ -240,7 +265,7 @@ export function createMemoryGateway({ db, storage, runtimeUrl, secret, origins =
         const origin = request.headers.get("origin");
         if (origin && origins.includes(origin)) {
           response.headers.set("access-control-allow-origin", origin);
-          response.headers.set("access-control-allow-headers", "authorization, content-type, mcp-protocol-version");
+          response.headers.set("access-control-allow-headers", "authorization, content-type, mcp-protocol-version, x-zioon-space-id");
           response.headers.set("access-control-allow-methods", "GET, POST, PUT, PATCH, OPTIONS");
           response.headers.set("vary", "Origin");
         }

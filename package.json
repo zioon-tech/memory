@@ -10,7 +10,7 @@
   "scripts": {
     "bootstrap": "node scripts/bootstrap-upstream.mjs",
     "start": "bun --cwd apps/memory-service start",
-    "test": "node --test apps/memory-service/tests/*.test.mjs && bun test apps/memory-service/tests/gateway.integration.test.ts",
+    "test": "node --test apps/memory-service/tests/*.test.mjs && bun test apps/memory-service/tests/gateway.integration.test.ts apps/memory-service/tests/shared-memory.integration.test.ts",
     "build:site": "node scripts/build-site.mjs",
     "check:site": "node scripts/check-site.mjs"
   }
