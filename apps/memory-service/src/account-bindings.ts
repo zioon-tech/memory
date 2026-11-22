@@ -13,6 +13,19 @@ export function createAccountBindings(db, accountIssuer) {
   const canonical = (value) => value.accountIdentity?.issuer === accountIssuer
     ? value.accountIdentity.subject : null;
   function resolve(value) {
+    const namespace = value.memoryScope;
+    if (value.space?.kind === "team" || namespace && namespace.kind !== "personal") {
+      const directDocument = namespace?.kind === "document"
+        && value.contentScope?.originSpaceId === namespace.spaceId
+        && value.contentScope?.documentId === namespace.documentId;
+      if (!namespace || namespace.spaceId !== value.space.id && !directDocument
+        || !["space", "document"].includes(namespace.kind)
+        || namespace.kind === "document" && (typeof namespace.documentId !== "string" || !namespace.documentId)) {
+        throw error("trusted_memory_namespace_required", 403);
+      }
+      return { scope: JSON.stringify(["shared-v1", namespace.spaceId, namespace.kind,
+        namespace.kind === "document" ? namespace.documentId : ""]), subject: null };
+    }
     const subject = canonical(value);
     const oldScope = legacy(value);
     const linked = subject
@@ -27,6 +40,9 @@ export function createAccountBindings(db, accountIssuer) {
     // Both credentials are verified remotely before this immutable transaction.
     // No account is ever linked based on matching emails or display names.
     link(adc, runtime) {
+      if (runtime.space?.kind === "team" || runtime.memoryScope && runtime.memoryScope.kind !== "personal") {
+        throw error("personal_account_link_required", 403);
+      }
       const subject = canonical(adc);
       if (!subject || canonical(runtime) && canonical(runtime) !== subject) throw error("account_link_mismatch", 403);
       return db.transaction(() => {
